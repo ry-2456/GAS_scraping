@@ -117,11 +117,12 @@ function writeToSpreadSheet(columnNames, twoDArray, sheetId, sheetName) {
                                    .reduce((arr_acc, arr_cur) => arr_acc.concat(arr_cur));
   console.log(compNamesAlreadyExist);
 
+  // TODO: 同じ会社名で地域や職種が異なる場合の処理をどうするか考える
   let compInfoToWrite = []; // 2darray
   for (let compInfo of twoDArray) {
-    if (!compNamesAlreadyExist.includes(compInfo.compName)) {
+    if (!compNamesAlreadyExist.includes(compInfo[0])) {
       compInfoToWrite.push(compInfo);
-      compNamesAlreadyExist.push(compInfo.compName); // update compNamesAlreadyExist.
+      compNamesAlreadyExist.push(compInfo[0]); // update compNamesAlreadyExist.
     }
   }
 
