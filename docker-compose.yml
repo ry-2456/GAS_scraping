@@ -1,0 +1,9 @@
+version: '2'
+services:
+  clasp:
+    build: .
+    tty: true
+    volumes:
+      - ./src:/opt/
+      - ./.clasprc.json:/root/.clasprc.json
+    working_dir: /opt
