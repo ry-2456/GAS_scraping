@@ -50,23 +50,12 @@ function scrape() {
 
     for (let i = 0; i < sections.length; ++i) {
       let obj = {};
-      let compName = sections[i].match(compNameRegex);
-      obj.compName = (compName ? compName[1].trim() : "");
-
-      let job = sections[i].match(jobRegex);
-      obj.job = (job ? job[1].trim() : "");
-
-      let area = sections[i].match(areaRegex);
-      obj.area = (area ? area[1].trim() : "");
-
-      let pay = sections[i].match(payRegex);
-      obj.pay = (pay ? pay[1].trim() : "");
-
-      let updatedAt = sections[i].match(updatedAtRegex);
-      obj.updatedAt = (updatedAt ? updatedAt[1].trim() : "");
-
-      let source = sections[i].match(sourceRegex);
-      obj.source = (source ? source[1].trim() : "");
+      obj.compName  = getFirstCapturedGroupOrEmptyStr(sections[i], compNameRegex).trim()
+      obj.job       = getFirstCapturedGroupOrEmptyStr(sections[i], jobRegex).trim()
+      obj.area      = getFirstCapturedGroupOrEmptyStr(sections[i], areaRegex).trim()
+      obj.pay       = getFirstCapturedGroupOrEmptyStr(sections[i], payRegex).trim()
+      obj.updatedAt = getFirstCapturedGroupOrEmptyStr(sections[i], updatedAtRegex).trim()
+      obj.source    = getFirstCapturedGroupOrEmptyStr(sections[i], sourceRegex).trim()
 
       compInfo.push(obj);
       console.log(obj);
@@ -131,6 +120,10 @@ function writeToSpreadSheet(columnNames, twoDArray, sheetId, sheetName) {
   let n_col = compInfoToWrite[0].length;
   let rangeToWrite = sheet.getRange(n_record+1, 1, n_row, n_col);
   rangeToWrite.setValues(compInfoToWrite);
+
+function getFirstCapturedGroupOrEmptyStr(sourceStr, regexPattern) {
+  let matchArray = sourceStr.match(regexPattern);
+  return (matchArray ? matchArray[1] : "");
 }
 
 function objArrayTo2dArray(objArray, keyOrder) {
