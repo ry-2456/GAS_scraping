@@ -9,7 +9,7 @@ function main() {
 }
 
 function scrape() {
-  // regex pattern to extract info
+  // regex patterns to extract info with
   // TODO: クラス名の正規表現をゆるくする(c-iconとか不必要なクラス名を消す)
   const sectionRegex = /<section class="p-result p-result-var1 is-biggerlink (s-placeSearch_parent|p-ad-item\d)">([\s\S]*?)<\/section>/g;
   const compNameRegex = /<p class="p-result_company">([\s\S]*?)<\/p>/;
@@ -21,14 +21,14 @@ function scrape() {
 
   let compInfo = [];
   for (let page = 0; page <= 2; ++page) {
-    // GETパラメーター
+    // make get params
     let getParam = {};
     getParam.area = AREA["kansai"];
     getParam.keyword = KEYWORD;
     getParam.page = [String(page)];
     let url = addGetParam(URL, getParam, GET_PARAM_DELIMITER);
 
-    // POSTパラメータ
+    // make post params
     let payload = {
       "form[updatedAt]": '1',  // 24時間以内
       "form[employType]": '1', // 正社員
@@ -39,7 +39,7 @@ function scrape() {
       "payload": payload,
     };
 
-    // htmlの取得
+    // fetch html
     let response = UrlFetchApp.fetch(url, options);
     if (response.getResponseCode() !== 200) return compInfo;
     let html = response.getContentText();
@@ -70,8 +70,8 @@ function scrape() {
 function addGetParam(url, getParam, getParamDelimiter) {
   // urlにparamを付け足したurlを返す
   let getParamList = [];
-  for (key in getParam)
-    getParamList.push(key + "=" + getParam[key].join(getParamDelimiter));
+  for (const prop in getParam)
+    getParamList.push(prop + "=" + getParam[prop].join(getParamDelimiter));
   return url + '?' + getParamList.join('&');
 }
 
@@ -89,38 +89,37 @@ function writeToSpreadSheet(columnNames, twoDArray, sheetId, sheetName) {
   let sheet = spreadSheet.getSheetByName(sheetName);
   
   // write columns to the first row. 
-  let n_column = columnNames.length;
-  sheet.getRange(1, 1, 1, n_column).setFontWeight("bold").setValues([columnNames]);
+  let numColumns = columnNames.length;
+  sheet.getRange(1, 1, 1, numColumns).setFontWeight("bold").setValues([columnNames]);
 
   // gets the number of rowss where cell in column A is not empty.
-  let n_record = sheet.getRange("A:A")                                       // A列の範囲
+  let numRecords = sheet.getRange("A:A")                                       // A列の範囲
                       .getValues()                                           // その範囲の値
-                      .reduce((arr_acc, arr_cur) => arr_acc.concat(arr_cur)) // 2dim => 1dim
+                      .reduce((arrAcc, arrCur) => arrAcc.concat(arrCur)) // 2dim => 1dim
                       .filter(elem => elem.trim()).length;                   // count elem except empty one
-  console.log("n_record : " + String(n_record));
+  console.log("numRecords : " + String(numRecords));
   
   // TODO: columnsのcompNameの位置を参照する
   // TODO: headerの有無を確認して取得範囲を決める
-  let compNamesAlreadyExist = sheet.getRange(`A2:A${n_record}`)
+  let compNamesAlreadyExist = sheet.getRange(`A2:A${numRecords}`)
                                    .getValues()
-                                   .reduce((arr_acc, arr_cur) => arr_acc.concat(arr_cur));
-  console.log(compNamesAlreadyExist);
+                                   .reduce((arrAcc, arrCur) => arrAcc.concat(arrCur));
 
   // TODO: 同じ会社名で地域や職種が異なる場合の処理をどうするか考える
-  let compInfoToWrite = []; // 2darray
+  let compInfoToSave = []; // 2darray
   for (let compInfo of twoDArray) {
     if (!compNamesAlreadyExist.includes(compInfo[0])) {
-      compInfoToWrite.push(compInfo);
+      compInfoToSave.push(compInfo);
       compNamesAlreadyExist.push(compInfo[0]); // update compNamesAlreadyExist.
     }
   }
 
   // TODO: columnsの順番で書き込む
-  let n_row = compInfoToWrite.length
-  let n_col = compInfoToWrite[0].length;
-  let rangeToWrite = sheet.getRange(n_record+1, 1, n_row, n_col);
-  rangeToWrite.setValues(compInfoToWrite);
   if (!compInfoToSave.length) return; // no new company info are scraped.
+  let numRows = compInfoToSave.length
+  let rangeToWrite = sheet.getRange(numRecords+1, 1, numRows, numColumns);
+  rangeToWrite.setValues(compInfoToSave);
+}
 
 function getFirstCapturedGroupOrEmptyStr(sourceStr, regexPattern) {
   let matchArray = sourceStr.match(regexPattern);
