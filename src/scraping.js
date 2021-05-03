@@ -120,6 +120,7 @@ function writeToSpreadSheet(columnNames, twoDArray, sheetId, sheetName) {
   let n_col = compInfoToWrite[0].length;
   let rangeToWrite = sheet.getRange(n_record+1, 1, n_row, n_col);
   rangeToWrite.setValues(compInfoToWrite);
+  if (!compInfoToSave.length) return; // no new company info are scraped.
 
 function getFirstCapturedGroupOrEmptyStr(sourceStr, regexPattern) {
   let matchArray = sourceStr.match(regexPattern);
