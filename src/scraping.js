@@ -103,3 +103,59 @@ function objArrayTo2dArray(objArray, keyOrder) {
   return twoDArray;
 }
 
+function readConfigSpreadSheet(sheetId, sheetName, propArr) {
+  // return configObj which has scraping config info.
+  // read config sheet.as 2d array.
+  let spreadSheet = SpreadsheetApp.openById(sheetId); 
+  let sheet = spreadSheet.getSheetByName(sheetName);
+  let lastRow = sheet.getLastRow();
+  let lastColumn = sheet.getLastColumn();
+  let configArr = sheet.getRange(1, 1, lastRow, lastColumn).getValues();
+
+  // delete comment string(cell) and comment rows.
+  for (let i = 0; i < configArr.length; ++i)
+    configArr[i] = configArr[i]
+                    .map(String)
+                    .filter(e => !e.trim().startsWith(COMMENT_PREFIX))
+                    .filter(e => e.trim().length);
+  configArr = configArr.filter(arr => arr.length);
+
+  // make config obj from configArr
+  // make [prop] in propArr into prop.
+  // eg. [area] -> area
+  configArr = configArr.map(arr => {
+    if (arr.length === 1 && propArr.includes(arr[0]))
+      return arr[0];
+    return arr;
+  });
+
+  // make config obj where prop is key and values other than prop are values.
+  // note values are all 1-dim array or 2-dim array.
+  // 1-dim array has no values, and 2-dim array has one or more values.
+  configObj = {};
+  let currentProp;
+  for (const elem of configArr) {
+    if (propArr.includes(elem)) {
+      currentProp = elem;
+      configObj[currentProp] = [];
+      continue;
+    }
+    configObj[currentProp].push(elem);
+  }
+ 
+  // to handle configObj easily convert values as follows
+  for (const prop in configObj) {
+    if (configObj[prop].length === 0) {
+      configObj[prop] = '';                   // []          -> ''
+    } 
+    else if (configObj[prop].length === 1) { 
+      configObj[prop] = configObj[prop][0];   // [[val,...]] -> [val,...]
+      if (configObj[prop].length === 1) {    
+        configObj[prop] = configObj[prop][0]; // [val]       -> val
+      }
+    }
+  }
+
+  return configObj;
+}
+
