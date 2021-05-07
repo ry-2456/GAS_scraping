@@ -37,12 +37,11 @@ function scrape(html) {
   return compInfo;
 }
 
-function addGetParam(url, getParam, getParamDelimiter) {
-  // urlにparamを付け足したurlを返す
-  let getParamList = [];
+function addGetParamToUrl(url, getParam, getParamDelimiter) {
+  let getParamJoinedArr = [];
   for (const prop in getParam)
-    getParamList.push(prop + "=" + getParam[prop].join(getParamDelimiter));
-  return url + '?' + getParamList.join('&');
+    getParamJoinedArr.push(prop + "=" + getParam[prop].join(getParamDelimiter));
+  return url + '?' + getParamJoinedArr.join('&');
 }
 
 function writeLog(textToWrite, docId="1yccpzudmrlgYjOSoTDoqVJzWmmhS4VdA_YXVhAlOHkk") {
