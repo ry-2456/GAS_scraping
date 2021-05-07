@@ -8,7 +8,7 @@ function main() {
   writeToSpreadSheet(COLUMN_ORDER, twoDArrayCompInfo, SHEET_ID, SHEET_NAME);
 }
 
-function scrape() {
+function scrape(html) {
   // regex patterns to extract info with
   // TODO: クラス名の正規表現をゆるくする(c-iconとか不必要なクラス名を消す)
   const sectionRegex = /<section class="p-result p-result-var1 is-biggerlink (s-placeSearch_parent|p-ad-item\d)">([\s\S]*?)<\/section>/g;
@@ -19,51 +19,21 @@ function scrape() {
   const updatedAtRegex = /<p class="p-result_updatedAt_hyphen">([\s\S]*?)<\/p>/;
   const sourceRegex = /<p class="p-result_source">([\s\S]*?)<\/p>/;
 
+  let sections = html.match(sectionRegex);
+  if (!sections) return;
+
   let compInfo = [];
-  for (let page = 0; page <= 2; ++page) {
-    // make get params
-    let getParam = {};
-    getParam.area = AREA["kansai"];
-    getParam.keyword = KEYWORD;
-    getParam.page = [String(page)];
-    let url = addGetParam(URL, getParam, GET_PARAM_DELIMITER);
+  for (let i = 0; i < sections.length; ++i) {
+    let obj = {};
+    obj.compName  = getFirstCapturedGroupOrEmptyStr(sections[i], compNameRegex).trim()
+    obj.job       = getFirstCapturedGroupOrEmptyStr(sections[i], jobRegex).trim()
+    obj.area      = getFirstCapturedGroupOrEmptyStr(sections[i], areaRegex).trim()
+    obj.pay       = getFirstCapturedGroupOrEmptyStr(sections[i], payRegex).trim()
+    obj.updatedAt = getFirstCapturedGroupOrEmptyStr(sections[i], updatedAtRegex).trim()
+    obj.source    = getFirstCapturedGroupOrEmptyStr(sections[i], sourceRegex).trim()
+    compInfo.push(obj);
+  }
 
-    // make post params
-    let payload = {
-      "form[updatedAt]": '1',  // 24時間以内
-      "form[employType]": '1', // 正社員
-      "feature": '1',
-    };
-    let options = {
-      "method": "post",
-      "payload": payload,
-    };
-
-    // fetch html
-    let response = UrlFetchApp.fetch(url, options);
-    if (response.getResponseCode() !== 200) return compInfo;
-    let html = response.getContentText();
-    
-    // do scraping
-    let sections = html.match(sectionRegex);
-    if (!sections) return compInfo; // no company info in this html
-
-    for (let i = 0; i < sections.length; ++i) {
-      let obj = {};
-      obj.compName  = getFirstCapturedGroupOrEmptyStr(sections[i], compNameRegex).trim()
-      obj.job       = getFirstCapturedGroupOrEmptyStr(sections[i], jobRegex).trim()
-      obj.area      = getFirstCapturedGroupOrEmptyStr(sections[i], areaRegex).trim()
-      obj.pay       = getFirstCapturedGroupOrEmptyStr(sections[i], payRegex).trim()
-      obj.updatedAt = getFirstCapturedGroupOrEmptyStr(sections[i], updatedAtRegex).trim()
-      obj.source    = getFirstCapturedGroupOrEmptyStr(sections[i], sourceRegex).trim()
-
-      compInfo.push(obj);
-      console.log(obj);
-    }
-    Utilities.sleep(1500); // sleep for 1.5sec
-    // console.log(compInfo.length);
-  } 
-  console.log(compInfo.length);
   return compInfo;
 }
 
