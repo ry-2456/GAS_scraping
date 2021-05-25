@@ -175,3 +175,21 @@ function existsSheet(sheetId, sheetName) {
   return false;
 }
 
+function makeTemplateConfigSheet(sheetId, sheetName, configTemplate, coloredCell) {
+  // configのtemplateを作る
+  // TODO: updatedAt, employTypeをプルダウンメニューにする
+  let spreadSheet = SpreadsheetApp.openById(sheetId); 
+  let sheet = spreadSheet.insertSheet();
+  sheet.setName(sheetName);
+
+  for (let i = 0; i < configTemplate.length; ++i) {
+    for (let j = 0; j < configTemplate[i].length; ++j) {
+      cell = sheet.getRange(i+1, j+1);
+      cell.setValue(configTemplate[i][j]);
+      // 左端でcoloredCellに含まれるcellに色を付ける
+      if (coloredCell.includes(configTemplate[i][j]) && j == 0)
+        cell.setBackground('#00ff00');
+    }
+  }
+  return sheet;
+}
