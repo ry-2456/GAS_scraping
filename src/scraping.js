@@ -193,3 +193,10 @@ function makeTemplateConfigSheet(sheetId, sheetName, configTemplate, coloredCell
   }
   return sheet;
 }
+
+function setTrigger(minutesAfter, funcName) {
+  // minutesAfter分後にfuncNameを実行するトリガーを作る
+  let nowDate = new Date();
+  nowDate.setMinutes(nowDate.getMinutes() + minutesAfter); 
+  ScriptApp.newTrigger(funcName).timeBased().at(nowDate).create();
+}
