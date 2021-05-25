@@ -1,11 +1,109 @@
-// TODO: configをスプレッドシートに移行
 // TODO: keyOrderに含まれているcolumnだけをsheetに書き込む
 // TODO: 担当列を追加
+
+function triggerFunction() {
+  main(); 
+}
+
 function main() {
-  let compInfo = scrape();
+
+  // configシートがなければtemplateを作る
+  if (!existsSheet(SHEET_ID, CONFIG_SHEET_NAME)) {
+    makeTemplateConfigSheet(
+      SHEET_ID, 
+      CONFIG_SHEET_NAME, 
+      CONFIG_TEMPLATE,
+      [
+        'spreadSheetIdToWriteTo', 
+        'sheetNameToWriteTo', 
+        'updatedAt',
+        'columnToScrape',
+        'header',
+        'employType',
+        'feature',
+        'keyword',
+        'area',
+      ]
+    );
+  }
+
+  let configObj = readConfigSpreadSheet(
+    SHEET_ID,
+    CONFIG_SHEET_NAME,
+    CONFIG_PROP
+  );
+  configObj.area = toArray(configObj.area, 2);
+  configObj.keyword = toArray(configObj.keyword, 1);
+
+  // get ready for scraping and do scrape
+  // make post params
+  let payload = {
+    "form[updatedAt]": configObj.updatedAt,
+    "form[employType]": configObj.employType,
+    "feature": configObj.feature
+  };
+  let options = {
+    "method": "post",
+    "payload": payload,
+  };
+
+  // 処理が途中で終わっていたなら続きから始める
+  let properties = PropertiesService.getScriptProperties();
+  let startPage = 0;
+  let startAreaIndex = 0;
+  if (properties.getProperty('inProgress') == 'true') {
+    startPage      = parseInt(properties.getProperty('startPage')); 
+    startAreaIndex = parseInt(properties.getProperty('startAreaIndex')); 
+  }
+
+  let compInfo = [];
+  let startDate = new Date();
+  for (let i = startAreaIndex; i < configObj.area.length; ++i) {
+    for (let page = startPage;; ++page) {
+
+      // 5分経過したら一旦終わる
+      let nowDate = new Date();
+      let elapsedMinutes = parseInt((nowDate.getTime() - startDate.getTime()) / (1000*60));
+      if (elapsedMinutes >= 5) {
+        properties.setProperty('startPage', page);    // 次回開始ページ番号
+        properties.setProperty('startAreaIndex', i);  // 次回開始ページ
+        properties.setProperty('inProgress', true);   // 処理の続きがあるかどうか
+
+        // 途中結果を書き込む
+        if (!ALLOW_EMPTY_COMPNAME) compInfo = compInfo.filter(e => e.compName);
+        let twoDArrayCompInfo = objArrayTo2dArray(compInfo, COLUMN_ORDER);
+        writeToSpreadSheet(COLUMN_ORDER, twoDArrayCompInfo, SHEET_ID, SHEET_NAME);
+        
+        setTrigger(2, 'triggerFunction');
+        return;
+      }
+
+      // add get params to url.
+      let getParam = {};
+      getParam.area = configObj.area[i];
+      getParam.keyword = configObj.keyword;
+      getParam.page = [String(page)];
+      let url = addGetParamToUrl(URL, getParam, GET_PARAM_DELIMITER);
+
+      // fetch html.
+      let response = UrlFetchApp.fetch(url, options);
+      if (response.getResponseCode() !== 200) break;
+      let html = response.getContentText();
+
+      // scrape
+      let newCompInfo = scrape(html);
+      if (!newCompInfo || !newCompInfo.length) break;
+      compInfo = [...compInfo, ...newCompInfo];
+
+      Utilities.sleep(1500);  // sleep for 1.5s.
+    }
+  }
   if (!ALLOW_EMPTY_COMPNAME) compInfo = compInfo.filter(e => e.compName);
   let twoDArrayCompInfo = objArrayTo2dArray(compInfo, COLUMN_ORDER);
   writeToSpreadSheet(COLUMN_ORDER, twoDArrayCompInfo, SHEET_ID, SHEET_NAME);
+  
+  properties.setProperty('inProgress', false);   // 処理完了
+  deleteTriggers('triggerFunction'); 
 }
 
 function scrape(html) {
@@ -74,7 +172,6 @@ function writeToSpreadSheet(columnNames, twoDArray, sheetId, sheetName) {
                                    .getValues()
                                    .reduce((arrAcc, arrCur) => arrAcc.concat(arrCur));
 
-  // TODO: 同じ会社名で地域や職種が異なる場合の処理をどうするか考える
   let compInfoToSave = []; // 2darray
   for (let compInfo of twoDArray) {
     if (!compNamesAlreadyExist.includes(compInfo[0])) {
