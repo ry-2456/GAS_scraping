@@ -90,6 +90,15 @@ function writeToSpreadSheet(columnNames, twoDArray, sheetId, sheetName) {
   rangeToWrite.setValues(compInfoToSave);
 }
 
+function toArray(val, dim) {
+  // convert val to array or 2darray.
+  // dimension reduction is not possible. eg. [[val]] -> [val] is not possible.
+  let oneDArr = Array.isArray(val) ? val : [val];
+  let twoDArr = Array.isArray(oneDArr[0]) ? oneDArr : [oneDArr];
+  if (dim === 1) return oneDArr;
+  if (dim === 2) return twoDArr;
+}
+
 function getFirstCapturedGroupOrEmptyStr(sourceStr, regexPattern) {
   let matchArray = sourceStr.match(regexPattern);
   return (matchArray ? matchArray[1] : "");
