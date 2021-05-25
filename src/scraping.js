@@ -168,3 +168,10 @@ function readConfigSpreadSheet(sheetId, sheetName, propArr) {
   return configObj;
 }
 
+function existsSheet(sheetId, sheetName) {
+  let spreadSheet = SpreadsheetApp.openById(sheetId); 
+  let sheet = spreadSheet.getSheetByName(sheetName);
+  if (sheet) return true;
+  return false;
+}
+
