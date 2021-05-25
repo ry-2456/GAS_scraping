@@ -200,3 +200,11 @@ function setTrigger(minutesAfter, funcName) {
   nowDate.setMinutes(nowDate.getMinutes() + minutesAfter); 
   ScriptApp.newTrigger(funcName).timeBased().at(nowDate).create();
 }
+
+function deleteTriggers(funcName) {
+  // funcNameのトリガーをすべて削除
+  let allTriggers = ScriptApp.getProjectTriggers();
+  for (var i = 0; i < allTriggers.length; ++i )
+    if (allTriggers[i].getHandlerFunction() == funcName)
+      ScriptApp.deleteTrigger(allTriggers[i]);
+}
