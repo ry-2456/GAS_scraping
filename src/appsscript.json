@@ -10,5 +10,5 @@
     ]
   },
   "exceptionLogging": "STACKDRIVER",
-  "runtimeVersion": "V8"
+  "runtimeVersion": "DEPRECATED_ES5"
 }
