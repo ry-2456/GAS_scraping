@@ -1,15 +1,15 @@
-const URL = "https://求人ボックス.com/adv/";
+var URL = "https://求人ボックス.com/adv/";
 // getパラメータの区切り文字 
 // e.g. url?keyword=業務系エンジニア or: webエンジニア&大阪府 or:京都府 or:兵庫県
-const GET_PARAM_DELIMITER = " or:";
-let COLUMN_ORDER = ["compName", "job", "area", "pay", "updatedAt", "source"];
-const ALLOW_EMPTY_COMPNAME = false; // 会社名が空の会社情報をシートに書き込むか
+var GET_PARAM_DELIMITER = " or:";
+var COLUMN_ORDER = ["compName", "job", "area", "pay", "updatedAt", "source"];
+var ALLOW_EMPTY_COMPNAME = false; // 会社名が空の会社情報をシートに書き込むか
 
-const SHEET_ID = "1QbMP9TDA7U81vctj0Dq_980fWESUWHHhqOhttEY6Zmc"; // sheet id to write scrapied info to 
-const SHEET_NAME = "sheet1"; 
+var SHEET_ID = "1QbMP9TDA7U81vctj0Dq_980fWESUWHHhqOhttEY6Zmc"; // sheet id to write scrapied info to 
+var SHEET_NAME = "sheet1"; 
 
 // readConfigSpreadSheetで読み込むコンフィグのprop
-const CONFIG_PROP = [ 
+var CONFIG_PROP = [ 
   "area", 
   "keyword", 
   "spreadSheetIdToWriteTo", 
@@ -20,11 +20,11 @@ const CONFIG_PROP = [
   "employType", 
   "feature" 
 ];
-const COMMENT_PREFIX = "#"; // configスプレッドシートのコメントセル接頭辞
+var COMMENT_PREFIX = "#"; // configスプレッドシートのコメントセル接頭辞
 
-const CONFIG_SHEET_NAME = 'config';
+var CONFIG_SHEET_NAME = 'config';
 
-const CONFIG_TEMPLATE = [
+var CONFIG_TEMPLATE = [
   ['#(number sing)で始まるセルとはコメント'],
   ['spreadSheetIdToWriteTo'],
   ['your spread sheet id'],
