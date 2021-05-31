@@ -58,7 +58,7 @@ function main() {
 
   // 処理が途中で終わっていたなら続きから始める
   var properties = PropertiesService.getScriptProperties();
-  var startPage = 0;
+  var startPage = 1;
   var startAreaIndex = 0;
   if (properties.getProperty('inProgress') == 'true') {
     startPage      = parseInt(properties.getProperty('startPage')); 
@@ -96,7 +96,7 @@ function main() {
       var getParam = {};
       getParam.area = configObj.area[i];
       getParam.keyword = configObj.keyword;
-      getParam.page = [String(page)];
+      getParam.pg = [String(page)];
       var url = addGetParamToUrl(URL, getParam, GET_PARAM_DELIMITER);
 
       // fetch html.
